@@ -42,10 +42,11 @@ def queryTwo(region_name, size, type_):
 
 
 def queryThree(mkt_segment, ini_d, end_d):
-    return session.run("MATCH (o:order {c_mktsegment:'%s'}) --> (l:LineItem {}) " \
-                       "WHERE o.orderdate < %s AND l.shipdate > %s " \
-                       "RETURN o.o_key,o.o_orderdate, o.o_shippriority,  SUM(l.extendedprice*(1-l.discount)) AS revenue "
-                       " " % (mkt_segment, ini_d, end_d))
+    query = "MATCH (o:order {c_mktsegment:'%s'}) --> (l:LineItem {}) " \
+         "WHERE o.o_orderdate < %s AND l.shipdate > %s " \
+         "RETURN o.o_key,o.o_orderdate, o.o_shippriority,  SUM(l.extendedprice*(1-l.discount)) AS revenue " \
+         "ORDER BY revenue DESC, o.o_orderdate" % (mkt_segment, end_d, ini_d)
+    return session.run(query)
 
 
 def queryFour(region, date, date2):
@@ -63,11 +64,11 @@ def query_print(result):
 
 # query_print(queryOne("'2016/03/06'"))
 # query_print(queryTwo('Catalunya', 10, 'cosa'))
-query_print(queryThree('hombre',"'2016/01/06'", "'2017/03/06'"))
+query_print(queryThree('hombre',"'2015/01/06'", "'2018/03/06'"))
 
 # query_print(queryFour("'Catalunya'", "'2016/01/06'", "'2017/03/06'"))
 
 # Borrado
-session.run("MATCH (n) DETACH DELETE n")
+# session.run("MATCH (n) DETACH DELETE n")
 
 session.close()
