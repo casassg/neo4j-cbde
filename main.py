@@ -1,6 +1,6 @@
 from neo4j.v1 import GraphDatabase, basic_auth
 
-driver = GraphDatabase.driver("bolt://localhost", auth=basic_auth("neo4j", "test"))
+driver = GraphDatabase.driver("bolt://localhost", auth=basic_auth("neo4j", "1234"))
 session = driver.session()
 
 # Llenado
@@ -51,7 +51,7 @@ def queryThree(mkt_segment, ini_d, end_d):
 
 def queryFour(region, date, date2):
     result = session.run("MATCH (r:region {r_name: %s }) - - > (o:order) - - > (l:LineItem) - - > "
-                         "(s:supplier) - - > (r2:region) "
+                         "(s:supplier) - - (r2:region) "
                          "WHERE o.o_orderdate >= %s AND o.o_orderdate < %s AND r.n_name = r2.n_name "
                          "RETURN r.n_name, SUM(l.extendedprice*(1-l.discount)) AS revenue "
                          "ORDER BY revenue DESC" % (region, date, date2))
