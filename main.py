@@ -22,9 +22,9 @@ session.run("MATCH(r:region {n_name:'Spain'}) MATCH(s:supplier {s_name:'Roberto'
 
 
 def queryOne(date):
-    result = session.run("MATCH (l:LineItem {}) WHERE l.shipdate <= %s RETURN l.returnflag, l.linestatus,"
-                         " SUM(l.quantity) AS sum_qty"
-                         ", SUM(l.extendedprice) AS sum_base_price, SUM(l.extendedprice*(1-l.discount)) AS sum_disc_price,"
+    result = session.run("MATCH (l:LineItem {}) "
+                         "WHERE l.shipdate <= %s "
+                         "RETURN l.returnflag, l.linestatus, SUM(l.quantity) AS sum_qty, SUM(l.extendedprice) AS sum_base_price, SUM(l.extendedprice*(1-l.discount)) AS sum_disc_price,"
                          "SUM(l.extendedprice*(1-l.discount)*(1+l.tax)) AS sum_charge, AVG(l.quantity) AS avg_qty,"
                          " AVG(l.extendedprice) AS avg_price, AVG(l.discount) AS avg_disc, COUNT(*) AS count_order "
                          " ORDER BY l.returnflag, l.linestatus" % (date))
@@ -43,15 +43,16 @@ def queryTwo(region_name, size, type_):
 
 def queryThree(mkt_segment, ini_d, end_d):
     query = "MATCH (o:order {c_mktsegment:'%s'}) --> (l:LineItem {}) " \
-         "WHERE o.o_orderdate < %s AND l.shipdate > %s " \
-         "RETURN o.o_key,o.o_orderdate, o.o_shippriority,  SUM(l.extendedprice*(1-l.discount)) AS revenue " \
-         "ORDER BY revenue DESC, o.o_orderdate" % (mkt_segment, end_d, ini_d)
+            "WHERE o.o_orderdate < %s AND l.shipdate > %s " \
+            "RETURN o.o_key,o.o_orderdate, o.o_shippriority,  SUM(l.extendedprice*(1-l.discount)) AS revenue " \
+            "ORDER BY revenue DESC, o.o_orderdate" % (mkt_segment, end_d, ini_d)
     return session.run(query)
 
 
 def queryFour(region, date, date2):
     result = session.run("MATCH (r:region {r_name: %s }) - - > (o:order) - - > (l:LineItem) - - > "
-                         "(s:supplier) - - > (r2:region) WHERE o.o_orderdate >= %s AND o.o_orderdate < %s AND r.n_name = r2.n_name "
+                         "(s:supplier) - - > (r2:region) "
+                         "WHERE o.o_orderdate >= %s AND o.o_orderdate < %s AND r.n_name = r2.n_name "
                          "RETURN r.n_name, SUM(l.extendedprice*(1-l.discount)) AS revenue "
                          "ORDER BY revenue DESC" % (region, date, date2))
     return result
@@ -62,13 +63,18 @@ def query_print(result):
         print(record)
 
 
-# query_print(queryOne("'2016/03/06'"))
-# query_print(queryTwo('Catalunya', 10, 'cosa'))
-query_print(queryThree('hombre',"'2015/01/06'", "'2018/03/06'"))
-
-# query_print(queryFour("'Catalunya'", "'2016/01/06'", "'2017/03/06'"))
+print('QUERY 1')
+query_print(queryOne("'2016/03/06'"))
+print('QUERY 2')
+query_print(queryTwo('Catalunya', 10, 'cosa'))
+print('QUERY 3')
+query_print(queryThree('hombre', "'2015/01/06'", "'2018/03/06'"))
+print('QUERY 4')
+query_print(queryFour("'Catalunya'", "'2016/01/06'", "'2017/03/06'"))
 
 # Borrado
-# session.run("MATCH (n) DETACH DELETE n")
+
+print('DELETING DB AGAIN')
+session.run("MATCH (n) DETACH DELETE n")
 
 session.close()
